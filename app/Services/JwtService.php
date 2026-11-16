@@ -94,6 +94,6 @@ class JwtService
             $data .= str_repeat('=', 4 - $remainder);
         }
 
-        return base64_decode(strtr($data, '-_', '+/'));
+        return base64_decode(strtr($data, '-_', '+/'), true);
     }
 }
