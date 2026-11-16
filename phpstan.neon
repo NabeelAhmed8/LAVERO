@@ -4,5 +4,16 @@ includes:
 parameters:
     paths:
         - app/
+        - bootstrap/app.php
+        - database/
+        - routes/
 
+    # Level 5: Basic checks, return types, argument types, dead code detection
     level: 5
+
+    # Exclude auto-generated and runtime cache paths
+    excludePaths:
+        - bootstrap/cache/
+        - storage/
+
+    treatPhpDocTypesAsCertain: false
