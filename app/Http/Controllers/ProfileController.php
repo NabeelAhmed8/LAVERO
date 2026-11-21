@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -39,12 +40,21 @@ class ProfileController extends Controller
             }
         }
 
-        $orders = $user ? $user->orders()->with('items')->latest()->get() : collect();
+        $totalOrdersCount = $user ? $user->orders()->count() : 0;
+        $activeOrdersCount = $user ? $user->orders()->whereIn('fulfillment_status', ['processing', 'shipped'])->count() : 0;
+        $totalLifetimeSpent = $user ? (float) $user->orders()->sum('total') : 0.0;
+
+        $orders = $user
+            ? $user->orders()->with('items')->latest()->paginate(5)->withQueryString()
+            : new LengthAwarePaginator([], 0, 5);
 
         return view('profile', [
             'user' => $user,
             'recentOrder' => $recentOrder,
             'orders' => $orders,
+            'totalOrdersCount' => $totalOrdersCount,
+            'activeOrdersCount' => $activeOrdersCount,
+            'totalLifetimeSpent' => $totalLifetimeSpent,
         ]);
     }
 

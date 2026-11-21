@@ -24,6 +24,15 @@ class ProductController extends Controller
     {
         $query = Product::with('category')->where('in_stock', true);
 
+        if ($request->filled('search')) {
+            $search = (string) $request->input('search');
+            $query->where(function ($q) use ($search): void {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('material', 'like', "%{$search}%");
+            });
+        }
+
         if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request): void {
                 $q->where('slug', $request->input('category'));
@@ -39,13 +48,18 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(9)->withQueryString();
-        $categories = Category::withCount('products')->get();
+        $categories = Category::withCount(['products' => function ($q): void {
+            $q->where('in_stock', true);
+        }])->get();
+        $totalProducts = Product::where('in_stock', true)->count();
 
         return view('shop.index', [
             'products' => $products,
             'categories' => $categories,
             'activeCategory' => $request->input('category'),
             'activeSort' => $request->input('sort'),
+            'search' => $request->input('search'),
+            'totalProducts' => $totalProducts,
         ]);
     }
 
